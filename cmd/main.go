@@ -403,6 +403,16 @@ func randomEmail() string {
 }
 
 func randomInt(min, max int) int {
+	// if they are the same, just return the min
+	if min == max {
+		return min
+	}
+
+	// swap values to ensure no negative numbers
+	if min > max {
+		min, max = max, min
+	}
+
 	return rand.Intn(max-min) + min
 }
 
