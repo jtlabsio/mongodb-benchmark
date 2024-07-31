@@ -1,0 +1,5 @@
+/.mongo/
+local.yml
+local.yaml
+settings/*.yml
+settings/*.yaml
