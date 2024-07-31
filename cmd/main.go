@@ -25,17 +25,29 @@ const (
 var (
 	baseIndices = []mongo.IndexModel{
 		{
-			Keys: bson.D{{"createdAt", 1}},
+			Keys: bson.D{{
+				Key:   "createdAt",
+				Value: 1,
+			}},
 		},
 		{
-			Keys:    bson.D{{"email", 1}},
+			Keys: bson.D{{
+				Key:   "email",
+				Value: 1,
+			}},
 			Options: options.Index().SetUnique(true),
 		},
 		{
-			Keys: bson.D{{"favoriteColor", -1}},
+			Keys: bson.D{{
+				Key:   "favoriteColor",
+				Value: -1,
+			}},
 		},
 		{
-			Keys: bson.D{{"updatedAt", -1}},
+			Keys: bson.D{{
+				Key:   "updatedAt",
+				Value: -1,
+			}},
 		},
 	}
 	baseSchema = bson.M{
@@ -298,26 +310,29 @@ func getLogLevel(level string) zerolog.Level {
 }
 
 func newRando(custom bool) any {
+	createdAt := randomDate()
+	updatedAt := randomDate(createdAt)
+
 	if custom {
 		return &RandoCustom{
-			CreatedAt:     randomDate(),
+			CreatedAt:     createdAt,
 			Email:         randomEmail(),
 			FavoriteColor: randomColor(),
 			FirstName:     randomLengthString(5, 10),
 			ID:            newUniqueID(),
 			LastName:      randomLengthString(5, 10),
-			UpdatedAt:     randomDate(),
+			UpdatedAt:     updatedAt,
 		}
 	}
 
 	return &RandoBase{
-		CreatedAt:     randomDate(),
+		CreatedAt:     createdAt,
 		Email:         randomEmail(),
 		FavoriteColor: randomColor(),
 		FirstName:     randomLengthString(5, 10),
 		ID:            newUniqueID(),
 		LastName:      randomLengthString(5, 10),
-		UpdatedAt:     randomDate(),
+		UpdatedAt:     updatedAt,
 	}
 }
 
@@ -368,7 +383,15 @@ func randomColor() string {
 	return colors[rand.Intn(len(colors))]
 }
 
-func randomDate() time.Time {
+func randomDate(after ...time.Time) time.Time {
+	// if an after date is provided, use it to generate a random date AFTER the provided date
+	if len(after) > 0 {
+		// return a random date after the provided date but before now
+		from := after[0].UnixMilli()
+		to := time.Now().UnixMilli()
+		return time.UnixMilli(int64(randomInt(int(from), int(to))))
+	}
+
 	return time.Now().Add(time.Duration(-randomInt(0, 365*24)) * time.Hour)
 }
 
