@@ -1,8 +1,8 @@
 # MongoDB Index Benchmark Testing
 
-## Getting Started
+Quick and simple Go application to test the performance of two different MongoDB index approaches for the entity ID field.
 
-### Setup the environment
+## Getting Started
 
 ```bash
 # Clone the repository
@@ -14,6 +14,22 @@ docker run -d -p 27017:27017 --name benchmark -v $PWD/.mongo:/data/db mongo
 # Install dependencies
 go mod download
 ```
+
+Now populate the database...
+
+```bash
+go run cmd/main.go -p true
+```
+
+Now run the server...
+
+```bash
+go run cmd/main.go
+```
+
+### Setup the environment
+
+The environment can be customized by creating a YAML file in the `./settings` directory. The default environment is `development`, but can be overridden by setting the `GO_ENV` or `ENV` environment variable to the desired environment name.
 
 #### Configuration / Settings
 
@@ -31,6 +47,8 @@ To run the application with the custom settings, use either the `GO_ENV` or `ENV
 ```bash
 GO_ENV=development go run cmd/main.go
 ```
+
+In addition to adjusting the logging level, the default address and port can be changed by modifying the `server.address` value in the settings file, along with several other settings (i.e. MongoDB connection details, pagination settings, etc.).
 
 #### Populate with test data
 
@@ -154,4 +172,28 @@ The following indexes are added for the `randoCustom` collection:
     "updatedAt": -1
   }
 ]
+```
+
+### Running the Benchmark
+
+The benchmarking process is dependent upon k6, a modern load testing tool. Docker can be used to execute the k6 load tests, per the instructions below. Alternative, to install k6, follow the instructions on the [k6 website](https://k6.io/docs/getting-started/installation/).
+
+Before testing, in a separate terminal window, start the server:
+
+```bash
+go run cmd/main.go
+```
+
+__Note:__ If the port is changed in the settings file, the port number will need to be updated in the k6 scripts (on line 13).
+
+To test the base case (`_id` is used as the ID field):
+
+```bash
+docker run --rm --add-host=host.docker.internal:host-gateway -i grafana/k6 run - < ./base.k6.js
+```
+
+To test the custom case (`randoID` is used as the ID field, and `_id` is left to be assigned by MongoDB):
+
+```bash
+docker run --rm --add-host=host.docker.internal:host-gateway -i grafana/k6 run - < ./custom.k6.js
 ```
